@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.poc.okmac.geotag.Database.GeoTagDatabase;
 import com.poc.okmac.geotag.Database.GetTagsTask;
 import com.poc.okmac.geotag.R;
+import com.poc.okmac.geotag.activities.MainActivity;
 import com.poc.okmac.geotag.adapters.GeoTagsAdapter;
 
 import java.util.ArrayList;
@@ -32,12 +33,19 @@ public class TagListFragment extends Fragment {
 
     private TextView tvNoTags;
     private RecyclerView rvTags;
+    private MainActivity mainActivity;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mainActivity = (MainActivity)getActivity();
         geoTagDatabase = GeoTagDatabase.getDatabase(getContext());
-        geoTagsAdapter = new GeoTagsAdapter(getContext());
+        geoTagsAdapter = new GeoTagsAdapter(getContext()) {
+            @Override
+            public void onTap(GeoTag geoTag) {
+                mainActivity.notifyMapFragment(geoTag);
+            }
+        };
     }
 
     @Nullable
@@ -54,8 +62,8 @@ public class TagListFragment extends Fragment {
         rvTags.setLayoutManager(new LinearLayoutManager(getContext()));
         rvTags.setAdapter(geoTagsAdapter);
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                ||ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE}, READ_REQUEST_CODE);
+                || ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, READ_REQUEST_CODE);
         } else {
             getTags();
         }
@@ -106,5 +114,9 @@ public class TagListFragment extends Fragment {
                 break;
 
         }
+    }
+
+    public void refreshRecycler(){
+        getTags();
     }
 }

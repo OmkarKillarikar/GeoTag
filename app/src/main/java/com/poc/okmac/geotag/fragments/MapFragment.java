@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -31,6 +32,7 @@ import com.poc.okmac.geotag.Database.GeoTagDatabase;
 import com.poc.okmac.geotag.Database.GetTagsTask;
 import com.poc.okmac.geotag.R;
 import com.poc.okmac.geotag.Utils.AppFileManager;
+import com.poc.okmac.geotag.activities.MainActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,11 +55,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private GeoTagDatabase geoTagDatabase;
     private ArrayList<GeoTag> geoTags;
     private GoogleMap googleMap;
+    private MainActivity mainActivity;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         geoTagDatabase = GeoTagDatabase.getDatabase(getContext());
+        mainActivity = (MainActivity)getActivity();
 
     }
 
@@ -184,9 +188,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                             @Override
                             public void run() {
                                 geoTagDatabase.geoTagDao().insert(geoTag);
+                                mainActivity.notifyDbUpdated();
+
                             }
                         }).start();
-
 
 
                     } catch (Exception e) {
@@ -248,6 +253,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             e.printStackTrace();
         }
         return addressString;
+    }
+
+    public void moveCameraToTag(GeoTag geoTag){
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(geoTag.getLatitude(),geoTag.getLongitude()),10));
+
     }
 
 }
