@@ -26,6 +26,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.poc.okmac.geotag.BuildConfig;
 import com.poc.okmac.geotag.Database.GeoTagDatabase;
@@ -42,6 +43,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static android.support.v4.content.PermissionChecker.checkSelfPermission;
+
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
     private static final int CAMERA_REQUEST = 101;
     private static final int CAMERA_PERMISSION_CODE = 100;
@@ -57,11 +60,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private GoogleMap googleMap;
     private MainActivity mainActivity;
 
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         geoTagDatabase = GeoTagDatabase.getDatabase(getContext());
-        mainActivity = (MainActivity)getActivity();
+        mainActivity = (MainActivity) getActivity();
 
     }
 
@@ -82,8 +86,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
         googleMap.setOnMapLongClickListener(this);
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, READ_REQUEST_CODE);
+        if (checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, READ_REQUEST_CODE);
         } else {
             getTags();
         }
@@ -93,15 +97,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     @Override
     public void onMapLongClick(LatLng latLng) {
         this.latLng = latLng;
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.VIBRATE}, VIBRATOR_REQUEST_CODE);
+        if (checkSelfPermission(getContext(), Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.VIBRATE}, VIBRATOR_REQUEST_CODE);
         } else {
             vibrate();
         }
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity()
-                    , new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}
+        if (checkSelfPermission(getContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}
                     , CAMERA_PERMISSION_CODE);
         } else {
             startCameraActivity();
@@ -218,12 +221,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Future<ArrayList<GeoTag>> future = executor.submit(new GetTagsTask(geoTagDatabase));
         try {
             geoTags = future.get();
+            ArrayList<LatLng> latLngs = new ArrayList<>();
             if (geoTags != null) {
                 for (GeoTag geoTag : geoTags) {
                     LatLng latLng = new LatLng(geoTag.getLatitude(), geoTag.getLongitude());
+                    latLngs.add(latLng);
                     googleMap.addMarker(new MarkerOptions().position(latLng));
                 }
+
+                //FIXME: latlng bounds animation not working
+                /*LatLngBounds latLngBounds;
+                if (latLngs.size() > 1) {
+                    latLngBounds = new LatLngBounds(latLngs.get(1), latLngs.get(0));
+                    for (int i = 2; i < latLngs.size(); i++) {
+                        latLngBounds.including(latLngs.get(i));
+                    }
+                    googleMap.setLatLngBoundsForCameraTarget(latLngBounds);
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, latLngs.size()));
+
+                }*/
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -255,8 +273,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         return addressString;
     }
 
-    public void moveCameraToTag(GeoTag geoTag){
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(geoTag.getLatitude(),geoTag.getLongitude()),10));
+    public void moveCameraToTag(GeoTag geoTag) {
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(geoTag.getLatitude(), geoTag.getLongitude()), 8));
 
     }
 
