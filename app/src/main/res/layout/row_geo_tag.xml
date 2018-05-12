@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     app:contentPadding="5dp"
+    android:background="@android:color/white"
     app:cardElevation="2dp"
     android:orientation="vertical">
 
@@ -19,10 +20,10 @@
             android:id="@+id/iv_geo_tag"
             android:scaleType="centerCrop"
             android:layout_width="50dp"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"/>
 
         <LinearLayout
-            android:paddingLeft="10dp"
+            android:layout_marginLeft="10dp"
             android:layout_width="match_parent"
             android:orientation="vertical"
             android:layout_height="wrap_content">

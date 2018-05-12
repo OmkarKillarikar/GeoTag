@@ -1,7 +1,11 @@
 package com.poc.okmac.geotag.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,21 +14,26 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.poc.okmac.geotag.R;
+import com.poc.okmac.geotag.Utils.AppFileManager;
 import com.poc.okmac.geotag.Utils.PicassoImageUtil;
 import com.poc.okmac.geotag.fragments.GeoTag;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter.GeoTagHolder> {
     public ArrayList<GeoTag> geoTags;
     private Context context;
     private PicassoImageUtil picassoImageUtil;
+    private AppFileManager appFileManager;
 
     public GeoTagsAdapter(Context context) {
         this.context = context;
         geoTags = new ArrayList<>();
         picassoImageUtil = new PicassoImageUtil(context);
+        appFileManager = new AppFileManager(context);
     }
 
     @NonNull
@@ -37,8 +46,27 @@ public class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter.GeoTagHo
     public void onBindViewHolder(@NonNull GeoTagHolder holder, int position) {
         GeoTag geoTag = geoTags.get(holder.getAdapterPosition());
         if (geoTag != null) {
+            File image = appFileManager.getExistingFile(geoTag.getImageName());
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap = null;
+            try {
+                bitmap = BitmapFactory.decodeStream(new FileInputStream(image), null, options);
+            } catch (Exception e) {
+                holder.ivTag.setImageResource(R.drawable.ic_placeholder);
+            }
+            holder.ivTag.setImageBitmap(bitmap);
+            StringBuilder strLatLng = new StringBuilder("Co-ordinates: ");
+            if (geoTag.getLatitude() != null) {
+                strLatLng.append(geoTag.getLatitude()).append(", ");
+            }
+            if (geoTag.getLongitude() != null) {
+                strLatLng.append(geoTag.getLongitude());
+            }
 
-            picassoImageUtil.setImageWithDefaultAndError();
+            holder.tvLatlng.setText(strLatLng);
+
+
         }
     }
 
@@ -53,9 +81,10 @@ public class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter.GeoTagHo
     class GeoTagHolder extends RecyclerView.ViewHolder {
         ImageView ivTag;
         TextView tvAddress, tvLatlng;
+
         GeoTagHolder(View itemView) {
             super(itemView);
-            ivTag = itemView.findViewWithTag(R.id.iv_geo_tag);
+            ivTag = itemView.findViewById(R.id.iv_geo_tag);
             tvAddress = itemView.findViewById(R.id.tv_tag_address);
             tvLatlng = itemView.findViewById(R.id.tv_tag_latlng);
         }

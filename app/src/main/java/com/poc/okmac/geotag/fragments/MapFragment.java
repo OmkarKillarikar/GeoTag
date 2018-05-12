@@ -15,7 +15,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,24 +23,32 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.poc.okmac.geotag.BuildConfig;
 import com.poc.okmac.geotag.Database.GeoTagDatabase;
+import com.poc.okmac.geotag.Database.GetTagsTask;
 import com.poc.okmac.geotag.R;
 import com.poc.okmac.geotag.Utils.AppFileManager;
 
 import java.io.File;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
     private static final int CAMERA_REQUEST = 101;
     private static final int CAMERA_PERMISSION_CODE = 100;
-    private static final int VIBRATOR_REQUEST_CODE = 101;
+    private static final int VIBRATOR_REQUEST_CODE = 102;
+    private static final int READ_REQUEST_CODE = 103;
 
     private Uri imageUri;
     private LatLng latLng;
     private String address = "temp";
 
     private GeoTagDatabase geoTagDatabase;
+    private ArrayList<GeoTag> geoTags;
+    private GoogleMap googleMap;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,12 +72,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
         googleMap.setOnMapLongClickListener(this);
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, READ_REQUEST_CODE);
+        } else {
+            getTags();
+        }
+
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        Log.d("###LatLong: ", latLng.latitude + ", " + latLng.longitude);
         this.latLng = latLng;
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.VIBRATE}, VIBRATOR_REQUEST_CODE);
@@ -131,6 +144,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 if (isPermissionAccepted) {
                     vibrate();
                 }
+            case READ_REQUEST_CODE:
+
+                isPermissionAccepted = true;
+                for (int grantResult : grantResults) {
+                    if (grantResult == PackageManager.PERMISSION_DENIED) {
+                        isPermissionAccepted = false;
+                        break;
+                    }
+                }
+                if (isPermissionAccepted) {
+                    getTags();
+                }
                 break;
 
         }
@@ -173,5 +198,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
         }
     }
+
+    private void getTags() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<ArrayList<GeoTag>> future = executor.submit(new GetTagsTask(geoTagDatabase));
+        try {
+            geoTags = future.get();
+            if (geoTags != null) {
+                for (GeoTag geoTag : geoTags) {
+                    LatLng latLng = new LatLng(geoTag.getLatitude(),geoTag.getLongitude());
+                    googleMap.addMarker(new
+                            MarkerOptions().position(latLng).title("Tutorialspoint.com"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            executor.shutdown();
+        }
+    }
+
 
 }
