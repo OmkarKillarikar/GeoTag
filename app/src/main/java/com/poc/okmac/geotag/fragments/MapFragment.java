@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,7 +33,9 @@ import com.poc.okmac.geotag.R;
 import com.poc.okmac.geotag.Utils.AppFileManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -173,12 +177,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         geoTag.setImageName(file.getName());
                         geoTag.setLatitude(latLng.latitude);
                         geoTag.setLongitude(latLng.longitude);
+                        geoTag.setAddress(getAddress(latLng));
+                        LatLng latLng = new LatLng(geoTag.getLatitude(), geoTag.getLongitude());
+                        googleMap.addMarker(new MarkerOptions().position(latLng));
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 geoTagDatabase.geoTagDao().insert(geoTag);
                             }
                         }).start();
+
+
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -206,9 +215,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             geoTags = future.get();
             if (geoTags != null) {
                 for (GeoTag geoTag : geoTags) {
-                    LatLng latLng = new LatLng(geoTag.getLatitude(),geoTag.getLongitude());
-                    googleMap.addMarker(new
-                            MarkerOptions().position(latLng).title("Tutorialspoint.com"));
+                    LatLng latLng = new LatLng(geoTag.getLatitude(), geoTag.getLongitude());
+                    googleMap.addMarker(new MarkerOptions().position(latLng));
                 }
             }
         } catch (Exception e) {
@@ -218,5 +226,28 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         }
     }
 
+    public String getAddress(LatLng latLng) {
+        Geocoder geocoder = new Geocoder(getContext());
+        List<Address> addressList;
+        String addressString = "";
+        StringBuilder deviceAddress = new StringBuilder();
+        try {
+            addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addressList != null && addressList.size() > 0) {
+                Address address = addressList.get(0);
+                if (address != null) {
+                    deviceAddress = new StringBuilder();
+                    for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+                        deviceAddress.append(address.getAddressLine(i)).append(",");
+                    }
+                }
+            }
+
+            addressString = deviceAddress.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return addressString;
+    }
 
 }
