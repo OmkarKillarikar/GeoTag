@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -26,6 +28,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.poc.okmac.geotag.BuildConfig;
@@ -59,13 +62,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private ArrayList<GeoTag> geoTags;
     private GoogleMap googleMap;
     private MainActivity mainActivity;
-
+    private AppFileManager appFileManager;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         geoTagDatabase = GeoTagDatabase.getDatabase(getContext());
         mainActivity = (MainActivity) getActivity();
-
+        appFileManager = new AppFileManager(getContext());
     }
 
     @Nullable
@@ -185,7 +188,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         geoTag.setLongitude(latLng.longitude);
                         geoTag.setAddress(getAddress(latLng));
                         LatLng latLng = new LatLng(geoTag.getLatitude(), geoTag.getLongitude());
-                        googleMap.addMarker(new MarkerOptions().position(latLng));
+
+                        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                        File image = appFileManager.getExistingFile(geoTag.getImageName());
+                        Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
+                        bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/26,bitmap.getHeight()/26,true);
+                        googleMap.addMarker(new MarkerOptions().position(latLng)).setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
+                        
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -225,7 +234,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 for (GeoTag geoTag : geoTags) {
                     LatLng latLng = new LatLng(geoTag.getLatitude(), geoTag.getLongitude());
                     latLngs.add(latLng);
-                    googleMap.addMarker(new MarkerOptions().position(latLng));
+                    BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                    File image = appFileManager.getExistingFile(geoTag.getImageName());
+                    Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
+                    bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/26,bitmap.getHeight()/26,true);
+                    googleMap.addMarker(new MarkerOptions().position(latLng)).setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
                 }
 
                 //FIXME: latlng bounds animation not working

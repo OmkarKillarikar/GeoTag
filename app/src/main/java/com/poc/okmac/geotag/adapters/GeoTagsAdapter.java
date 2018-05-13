@@ -54,7 +54,7 @@ public abstract class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter
             try {
                 BitmapFactory.Options bmOptions = new BitmapFactory.Options();
                 Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
-                bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/2,bitmap.getHeight()/2,true);
+                bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/3,bitmap.getHeight()/3,true);
                 holder.ivTag.setImageBitmap(bitmap);
             } catch (Exception e) {
                 holder.ivTag.setImageResource(R.drawable.ic_placeholder);
