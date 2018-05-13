@@ -38,14 +38,14 @@ public class MainActivity extends AppCompatActivity {
         tlFragments.setupWithViewPager(vpFragments);
 
         vpFragments.setAdapter(customPagerAdapter);
-        }
+    }
 
     public void notifyMapFragment(GeoTag geoTag) {
         vpFragments.setCurrentItem(0);
         mapFragment.moveCameraToTag(geoTag);
     }
 
-    public void notifyDbUpdated(){
+    public void notifyDbUpdated() {
         tagListFragment.refreshRecycler();
     }
 }

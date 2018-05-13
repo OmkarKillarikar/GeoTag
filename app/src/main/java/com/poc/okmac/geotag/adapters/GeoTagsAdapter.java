@@ -3,11 +3,10 @@ package com.poc.okmac.geotag.adapters;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +20,6 @@ import com.poc.okmac.geotag.fragments.GeoTag;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public abstract class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter.GeoTagHolder> {
@@ -68,6 +66,12 @@ public abstract class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter
             }
 
             holder.tvLatlng.setText(strLatLng);
+            if (TextUtils.isEmpty(geoTag.getAddress())) {
+                holder.tvAddress.setVisibility(View.GONE);
+            } else {
+                holder.tvAddress.setVisibility(View.VISIBLE);
+                holder.tvAddress.setText(geoTag.getAddress());
+            }
 
             holder.cvTag.setOnClickListener(new View.OnClickListener() {
                 @Override

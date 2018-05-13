@@ -15,7 +15,8 @@ import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +27,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.poc.okmac.geotag.BuildConfig;
 import com.poc.okmac.geotag.Database.GeoTagDatabase;
@@ -60,7 +60,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private GoogleMap googleMap;
     private MainActivity mainActivity;
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,7 +90,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         } else {
             getTags();
         }
-
+        showSnackBar();
     }
 
     @Override
@@ -260,7 +259,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 Address address = addressList.get(0);
                 if (address != null) {
                     deviceAddress = new StringBuilder();
-                    for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+                    for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
                         deviceAddress.append(address.getAddressLine(i)).append(",");
                     }
                 }
@@ -276,6 +275,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void moveCameraToTag(GeoTag geoTag) {
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(geoTag.getLatitude(), geoTag.getLongitude()), 8));
 
+    }
+
+    private void showSnackBar(){
+        Snackbar.make(getActivity().findViewById(android.R.id.content),
+                "Tap & hold anywhere to add image !", Snackbar.LENGTH_LONG).show();
     }
 
 }
