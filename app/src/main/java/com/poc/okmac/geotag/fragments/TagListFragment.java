@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -26,7 +27,7 @@ import java.util.concurrent.Future;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
-public class TagListFragment extends Fragment {
+public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private static final int READ_REQUEST_CODE = 100;
     private GeoTagDatabase geoTagDatabase;
@@ -35,11 +36,12 @@ public class TagListFragment extends Fragment {
     private TextView tvNoTags;
     private RecyclerView rvTags;
     private MainActivity mainActivity;
+    private SwipeRefreshLayout refreshLayout;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainActivity = (MainActivity)getActivity();
+        mainActivity = (MainActivity) getActivity();
         geoTagDatabase = GeoTagDatabase.getDatabase(getContext());
         geoTagsAdapter = new GeoTagsAdapter(getContext()) {
             @Override
@@ -58,6 +60,8 @@ public class TagListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        refreshLayout = view.findViewById(R.id.srl_tags);
+        refreshLayout.setOnRefreshListener(this);
         tvNoTags = view.findViewById(R.id.tv_no_tags);
         rvTags = view.findViewById(R.id.rv_geo_tags);
         rvTags.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -77,10 +81,10 @@ public class TagListFragment extends Fragment {
         try {
             geoTagsAdapter.geoTags = future.get();
             geoTagsAdapter.notifyDataSetChanged();
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            refreshLayout.setRefreshing(false);
             executor.shutdown();
         }
     }
@@ -117,7 +121,13 @@ public class TagListFragment extends Fragment {
         }
     }
 
-    public void refreshRecycler(){
+    public void refreshRecycler() {
         getTags();
+    }
+
+    @Override
+    public void onRefresh() {
+        getTags();
+        invalidateUi();
     }
 }
