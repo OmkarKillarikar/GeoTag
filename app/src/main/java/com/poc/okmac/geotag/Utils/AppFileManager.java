@@ -60,7 +60,7 @@ public class AppFileManager {
             folderCreated = true;
         }
         if (folderCreated) {
-            return new File(Environment.getExternalStorageDirectory() + "/" + FOLDER_NAME + "/" + fileName + ".jpg");
+            return new File(Environment.getExternalStorageDirectory() + "/" + FOLDER_NAME + "/" + fileName);
         } else {
             return null;
         }

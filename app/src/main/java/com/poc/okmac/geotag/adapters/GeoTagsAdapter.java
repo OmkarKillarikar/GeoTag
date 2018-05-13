@@ -3,6 +3,7 @@ package com.poc.okmac.geotag.adapters;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -28,7 +29,7 @@ public abstract class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter
     private PicassoImageUtil picassoImageUtil;
     private AppFileManager appFileManager;
 
-    public GeoTagsAdapter(Context context) {
+    protected GeoTagsAdapter(Context context) {
         this.context = context;
         geoTags = new ArrayList<>();
         picassoImageUtil = new PicassoImageUtil(context);
@@ -50,14 +51,15 @@ public abstract class GeoTagsAdapter extends RecyclerView.Adapter<GeoTagsAdapter
             File image = appFileManager.getExistingFile(geoTag.getImageName());
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap bitmap = null;
             try {
-                bitmap = BitmapFactory.decodeStream(new FileInputStream(image), null, options);
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
+                bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/2,bitmap.getHeight()/2,true);
+                holder.ivTag.setImageBitmap(bitmap);
             } catch (Exception e) {
                 holder.ivTag.setImageResource(R.drawable.ic_placeholder);
             }
-            holder.ivTag.setImageBitmap(bitmap);
-            StringBuilder strLatLng = new StringBuilder("Co-ordinates: ");
+            StringBuilder strLatLng = new StringBuilder(context.getString(R.string.coordinates));
             if (geoTag.getLatitude() != null) {
                 strLatLng.append(geoTag.getLatitude()).append(", ");
             }

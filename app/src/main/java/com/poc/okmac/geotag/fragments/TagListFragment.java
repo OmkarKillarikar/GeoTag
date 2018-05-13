@@ -41,6 +41,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mainActivity = (MainActivity) getActivity();
         geoTagDatabase = GeoTagDatabase.getDatabase(getContext());
         geoTagsAdapter = new GeoTagsAdapter(getContext()) {
@@ -72,10 +73,9 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         } else {
             getTags();
         }
-        invalidateUi();
     }
 
-    private void getTags() {
+    public void getTags() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<ArrayList<GeoTag>> future = executor.submit(new GetTagsTask(geoTagDatabase));
         try {
@@ -86,6 +86,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         } finally {
             refreshLayout.setRefreshing(false);
             executor.shutdown();
+            invalidateUi();
         }
     }
 
@@ -121,13 +122,12 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         }
     }
 
-    public void refreshRecycler() {
-        getTags();
-    }
-
     @Override
     public void onRefresh() {
         getTags();
-        invalidateUi();
+    }
+
+    public void refreshData() {
+        getTags();
     }
 }
