@@ -194,13 +194,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
                         bitmap = Bitmap.createScaledBitmap(bitmap,bitmap.getWidth()/26,bitmap.getHeight()/26,true);
                         googleMap.addMarker(new MarkerOptions().position(latLng)).setIcon(BitmapDescriptorFactory.fromBitmap(bitmap));
-                        
+
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 geoTagDatabase.geoTagDao().insert(geoTag);
                                 mainActivity.notifyDbUpdated();
-
                             }
                         }).start();
 

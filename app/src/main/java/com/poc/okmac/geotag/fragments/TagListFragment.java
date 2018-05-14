@@ -12,7 +12,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.poc.okmac.geotag.Database.GeoTagDatabase;
 import com.poc.okmac.geotag.Database.GetTagsTask;
@@ -33,7 +32,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
     private GeoTagDatabase geoTagDatabase;
     private GeoTagsAdapter geoTagsAdapter;
 
-    private TextView tvNoTags;
+    private View viewNoTags;
     private RecyclerView rvTags;
     private MainActivity mainActivity;
     private SwipeRefreshLayout refreshLayout;
@@ -63,7 +62,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         super.onViewCreated(view, savedInstanceState);
         refreshLayout = view.findViewById(R.id.srl_tags);
         refreshLayout.setOnRefreshListener(this);
-        tvNoTags = view.findViewById(R.id.tv_no_tags);
+        viewNoTags = view.findViewById(R.id.ll_no_tags);
         rvTags = view.findViewById(R.id.rv_geo_tags);
         rvTags.setLayoutManager(new LinearLayoutManager(getContext()));
         rvTags.setAdapter(geoTagsAdapter);
@@ -81,7 +80,12 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         Future<ArrayList<GeoTag>> future = executor.submit(new GetTagsTask(geoTagDatabase));
         try {
             geoTagsAdapter.geoTags = future.get();
-            geoTagsAdapter.notifyDataSetChanged();
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    geoTagsAdapter.notifyDataSetChanged();
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -94,10 +98,10 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
     private void invalidateUi() {
         try{
             if (geoTagsAdapter.geoTags == null || geoTagsAdapter.geoTags.size() == 0) {
-                tvNoTags.setVisibility(View.VISIBLE);
+                viewNoTags.setVisibility(View.VISIBLE);
                 rvTags.setVisibility(View.GONE);
             } else {
-                tvNoTags.setVisibility(View.GONE);
+                viewNoTags.setVisibility(View.GONE);
                 rvTags.setVisibility(View.VISIBLE);
             }
 
