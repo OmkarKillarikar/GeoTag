@@ -73,6 +73,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         } else {
             getTags();
         }
+        invalidateUi();
     }
 
     public void getTags() {
@@ -86,18 +87,22 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
         } finally {
             refreshLayout.setRefreshing(false);
             executor.shutdown();
-            invalidateUi();
         }
     }
 
 
     private void invalidateUi() {
-        if (geoTagsAdapter.geoTags == null || geoTagsAdapter.geoTags.size() == 0) {
-            tvNoTags.setVisibility(View.VISIBLE);
-            rvTags.setVisibility(View.GONE);
-        } else {
-            tvNoTags.setVisibility(View.GONE);
-            rvTags.setVisibility(View.VISIBLE);
+        try{
+            if (geoTagsAdapter.geoTags == null || geoTagsAdapter.geoTags.size() == 0) {
+                tvNoTags.setVisibility(View.VISIBLE);
+                rvTags.setVisibility(View.GONE);
+            } else {
+                tvNoTags.setVisibility(View.GONE);
+                rvTags.setVisibility(View.VISIBLE);
+            }
+
+        }catch (Exception e){
+
         }
     }
 
@@ -116,6 +121,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
                 }
                 if (isPermissionAccepted) {
                     getTags();
+                    invalidateUi();
                 }
                 break;
 
@@ -125,6 +131,7 @@ public class TagListFragment extends Fragment implements SwipeRefreshLayout.OnRe
     @Override
     public void onRefresh() {
         getTags();
+        invalidateUi();
     }
 
     public void refreshData() {
