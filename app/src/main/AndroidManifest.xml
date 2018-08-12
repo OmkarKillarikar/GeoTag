@@ -26,7 +26,7 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCYZk0XRVbcYdIGHNrrD7KEpkkvc7hkOSU" />
+            android:value="YOUR_API_KEY" />
 
         <activity android:name=".activities.MainActivity">
             <intent-filter>
